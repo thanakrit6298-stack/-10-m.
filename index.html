@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LATHE 10M — MACHINING SCHEDULE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS — Engineering Blueprint Theme
+   Primary: Indigo steel + safety amber accent
+   ══════════════════════════════════════════════ */
+:root {
+  /* Page */
+  --bg:         #080F1A;
+  --bg2:        #0D1623;
+  --bg3:        #111C2D;
+
+  /* Panels */
+  --panel:      #131D2C;
+  --panel2:     #182434;
+  --panel3:     #1E2C3F;
+
+  /* Borders */
+  --bdr:        #1C2E45;
+  --bdr2:       #274060;
+  --bdr3:       #366090;
+
+  /* Accent palette */
+  --amber:      #F5A623;
+  --amber-2:    #D4831C;
+  --amber-3:    #7A4510;
+  --cyan:       #3FC6D4;
+  --cyan-2:     #1A8FA0;
+  --green:      #2DC98A;
+  --green-2:    #0A6040;
+  --red:        #E05252;
+  --red-2:      #6B1A1A;
+  --violet:     #9A7FE8;
+  --orange:     #E07B3A;
+
+  /* Text */
+  --t1:         #E8F2FF;
+  --t2:         #7AAFCC;
+  --t3:         #3D6E8A;
+  --t4:         #1E3A50;
+
+  /* Bar colors */
+  --bar-plan:   #1B5899;
+  --bar-plan-h: #2570BE;
+  --bar-wip:    #B8630A;
+  --bar-wip-h:  #D97C1A;
+  --bar-done:   #0B5C3A;
+  --bar-done-h: #0D7848;
+  --bar-hold:   #6B2525;
+  --bar-hold-h: #8B3535;
+
+  /* Fonts */
+  --f-th:    "Noto Sans Thai", sans-serif;
+  --f-mono:  "IBM Plex Mono", monospace;
+
+  /* Dimensions — compact for viewer */
+  --topbar-h: 48px;
+  --row-h:    42px;
+  --dc-w:     28px; /* Date column — tight but readable */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--f-th);background:var(--bg);color:var(--t1);
+  min-height:100vh;font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ══════════════════
+   ADMIN LOGIN
+   ══════════════════ */
+#login-overlay{
+  position:fixed;inset:0;background:rgba(4,9,18,.92);
+  display:none;align-items:center;justify-content:center;z-index:9000;
+  backdrop-filter:blur(10px);
+}
+.lcard{
+  background:var(--panel2);border:1px solid var(--bdr2);border-radius:6px;
+  padding:44px 40px 36px;width:400px;max-width:93vw;position:relative;
+}
+.lcard-bar{
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--amber));
+}
+.lcard-x{
+  position:absolute;top:14px;right:16px;background:transparent;border:none;
+  color:var(--t3);font-size:20px;cursor:pointer;line-height:1;
+}
+.lcard-x:hover{color:var(--t1)}
+.llogo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.llogo-text{font-family:var(--f-mono);font-size:9px;letter-spacing:2.5px;color:var(--t3);text-transform:uppercase;line-height:1.8}
+.llogo-text strong{color:var(--cyan);display:block;font-size:13px;letter-spacing:1px}
+.lcard h2{font-size:20px;font-weight:700;margin-bottom:3px}
+.lcard p{font-size:11px;font-family:var(--f-mono);color:var(--t3);margin-bottom:28px;letter-spacing:.5px}
+.lf{margin-bottom:16px}
+.lf label{display:block;font-size:10px;font-family:var(--f-mono);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:7px}
+.lf input{
+  width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;
+  padding:11px 13px;color:var(--t1);font-family:var(--f-mono);font-size:13px;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.lf input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(63,198,212,.1)}
+.lerr{color:var(--red);font-size:12px;font-family:var(--f-mono);margin-top:8px;display:none}
+.lbtn{
+  width:100%;margin-top:8px;padding:12px;background:var(--cyan);border:none;border-radius:4px;
+  color:var(--bg);font-family:var(--f-mono);font-weight:700;font-size:12px;
+  letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;
+}
+.lbtn:hover{background:#52D6E6}
+.lhint{margin-top:16px;font-size:10px;font-family:var(--f-mono);color:var(--t4);text-align:center;letter-spacing:.5px}
+
+/* ══════════════════
+   TOPBAR
+   ══════════════════ */
+.topbar{
+  background:var(--panel);border-bottom:1px solid var(--bdr2);
+  height:var(--topbar-h);padding:0 16px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:500;
+}
+.tb-logo{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.tb-wordmark{font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:2px;color:var(--t1);white-space:nowrap;text-transform:uppercase}
+.tb-wordmark span{color:var(--amber)}
+.tb-rule{width:1px;height:24px;background:var(--bdr2);flex-shrink:0}
+.tb-sub{font-family:var(--f-mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;white-space:nowrap}
+.tb-spacer{flex:1}
+.tb-admin-badge{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;padding:3px 10px;
+  border-radius:2px;border:1px solid var(--amber);color:var(--amber);
+  background:rgba(245,166,35,.07);font-weight:700;text-transform:uppercase;white-space:nowrap;
+}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;background:transparent;
+  border:1px solid var(--bdr2);border-radius:4px;color:var(--t2);
+  padding:7px 14px;font-size:12px;font-family:var(--f-th);cursor:pointer;
+  transition:all .15s;white-space:nowrap;font-weight:500;
+}
+.tb-btn:hover{border-color:var(--bdr3);color:var(--t1);background:var(--panel2)}
+.tb-btn.accent{background:var(--cyan);border-color:var(--cyan);color:var(--bg);font-weight:700}
+.tb-btn.accent:hover{background:#52D6E6;border-color:#52D6E6}
+.tb-btn svg{width:13px;height:13px;flex-shrink:0}
+
+/* ══════════════════
+   MAIN
+   ══════════════════ */
+.main{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+
+/* ══════════════════
+   STAT CARDS
+   ══════════════════ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.scard{
+  background:var(--panel2);border:1px solid var(--bdr);border-radius:5px;
+  padding:10px 14px 9px;position:relative;overflow:hidden;
+}
+.scard::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+}
+.scard.c0::after{background:var(--cyan)}
+.scard.c1::after{background:var(--green)}
+.scard.c2::after{background:var(--amber)}
+.scard.c3::after{background:var(--red)}
+.scard-lbl{
+  font-size:9px;font-family:var(--f-mono);color:var(--t3);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:600;
+}
+.scard-val{font-size:26px;font-family:var(--f-mono);font-weight:700;line-height:1}
+.scard.c0 .scard-val{color:var(--cyan)}
+.scard.c1 .scard-val{color:var(--green)}
+.scard.c2 .scard-val{color:var(--amber)}
+.scard.c3 .scard-val{color:var(--red)}
+.scard-sub{font-size:10px;color:var(--t4);margin-top:3px;font-family:var(--f-mono);letter-spacing:.5px}
+
+/* ══════════════════
+   TOOLBAR
+   ══════════════════ */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar-l{display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap}
+.t-inp{
+  background:var(--panel2);border:1px solid var(--bdr2);border-radius:4px;
+  padding:6px 10px;color:var(--t1);font-family:var(--f-th);font-size:11px;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.t-inp:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(63,198,212,.08)}
+.t-inp::placeholder{color:var(--t3)}
+.t-search{width:220px}
+.t-sel{width:120px;cursor:pointer}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--t2);font-family:var(--f-mono);letter-spacing:.3px}
+.leg-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ══════════════════
+   SECTION HEADER
+   ══════════════════ */
+.sec-hd{display:flex;align-items:center;gap:10px}
+.sec-hd-line{flex:1;height:1px;background:var(--bdr2)}
+.sec-hd-txt{
+  font-family:var(--f-mono);font-size:8px;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--t3);white-space:nowrap;
+  display:flex;align-items:center;gap:6px;
+}
+.sec-hd-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0}
+
+/* ══════════════════
+   TABLE WRAPPER
+   ══════════════════ */
+.sched-wrap{
+  background:var(--panel);border:1px solid var(--bdr2);border-radius:6px;
+  overflow:hidden;
+}
+.sched-scroll{overflow-x:auto;overflow-y:visible}
+.sched-scroll::-webkit-scrollbar{height:7px}
+.sched-scroll::-webkit-scrollbar-track{background:var(--bg2)}
+.sched-scroll::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+.sched-scroll::-webkit-scrollbar-thumb:hover{background:var(--bdr3)}
+.scroll-hint{
+  text-align:center;font-size:10px;font-family:var(--f-mono);color:var(--t4);
+  padding:7px;border-top:1px solid var(--bdr);letter-spacing:2px;
+}
+
+/* ══════════════════
+   GANTT TABLE
+   ══════════════════ */
+table.gt{border-collapse:collapse;min-width:100%}
+table.gt th,table.gt td{border:1px solid var(--bdr)}
+
+/* — Fixed header row 1 — */
+table.gt thead tr.hr1 th{
+  background:var(--bg2);font-family:var(--f-mono);font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--cyan);
+  padding:8px 8px;white-space:nowrap;position:sticky;top:0;z-index:20;
+  border-bottom:2px solid var(--bdr2);
+}
+
+/* — Month + day header row 2 — */
+table.gt thead tr.hr2 th{
+  background:var(--bg2);padding:0;position:sticky;top:0;z-index:15;
+  border-bottom:1px solid var(--bdr2);
+}
+.mth-cell{
+  font-family:var(--f-mono);font-size:9px;font-weight:700;letter-spacing:1px;
+  text-align:center;padding:4px 2px 3px;color:var(--amber);
+  border-bottom:2px solid var(--amber-3);text-transform:uppercase;
+  background:var(--bg2);
+}
+
+/* — Day cell — */
+.dc{width:var(--dc-w);min-width:var(--dc-w)}
+.day-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding:3px 1px 3px;gap:1px;
+}
+.day-num{
+  font-family:var(--f-mono);font-size:11px;font-weight:700;
+  color:var(--t2);line-height:1;
+}
+.day-dow{
+  font-family:var(--f-mono);font-size:8px;color:var(--t4);
+  text-transform:uppercase;letter-spacing:.3px;
+}
+/* Today */
+.d-today .day-num{color:var(--amber);font-weight:700}
+.d-today .day-dow{color:var(--amber-2)}
+.d-today-bg{background:rgba(245,166,35,.05) !important}
+.d-today-mark{outline:2px solid var(--amber);outline-offset:-2px;position:relative;z-index:2}
+/* Holiday */
+.d-hol-sun .day-num{color:var(--red);opacity:.5}
+.d-hol-sun .day-dow{color:var(--red);opacity:.4}
+.d-hol-sat .day-num{color:var(--t4)}
+.d-hol-sat .day-dow{color:var(--t4);opacity:.6}
+
+/* ══════════════════
+   FIXED COLUMNS
+   ══════════════════ */
+.cf-no   {width:38px;min-width:38px}
+.cf-name {width:180px;min-width:160px}
+.cf-area {width:80px;min-width:70px}
+.cf-own  {width:110px;min-width:90px}
+.cf-sta  {width:96px;min-width:86px;text-align:center}
+.cf-proc {width:140px;min-width:110px}
+.cf-note {width:120px;min-width:90px}
+.cf-rnote{width:130px;min-width:100px}
+
+/* ══════════════════
+   BODY ROWS
+   ══════════════════ */
+tbody tr{height:var(--row-h);background:var(--panel);transition:background .1s}
+tbody tr:hover{background:var(--panel3)}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--panel) 55%,var(--bg2))}
+tbody tr:nth-child(even):hover{background:var(--panel3)}
+
+/* — No cell — */
+.tc-no{
+  text-align:center;font-family:var(--f-mono);font-size:11px;
+  font-weight:700;color:var(--t3);padding:0 4px;vertical-align:middle;
+}
+.prio-bar{
+  display:inline-block;width:3px;border-radius:2px;
+  vertical-align:middle;margin-right:4px;
+}
+
+/* — Job name cell — */
+.tc-name{padding:5px 8px;vertical-align:middle}
+.jname{
+  font-size:12px;font-weight:600;color:var(--t1);line-height:1.35;
+  margin-bottom:2px;word-break:break-word;
+}
+.jmeta{
+  display:flex;align-items:center;gap:4px;font-size:9px;
+  font-family:var(--f-mono);color:var(--t3);flex-wrap:wrap;
+}
+.jmeta-sep{color:var(--t4);font-size:8px}
+.abtn-row{display:flex;gap:4px;margin-top:4px}
+.abtn{
+  padding:2px 7px;font-size:9px;font-family:var(--f-th);border-radius:2px;
+  cursor:pointer;transition:all .15s;font-weight:600;border:1px solid;white-space:nowrap;
+}
+.ae{background:rgba(63,198,212,.06);border-color:rgba(63,198,212,.3);color:var(--cyan)}
+.ae:hover{background:rgba(63,198,212,.14);border-color:var(--cyan)}
+.ad{background:rgba(224,82,82,.06);border-color:rgba(224,82,82,.3);color:var(--red)}
+.ad:hover{background:rgba(224,82,82,.14);border-color:var(--red)}
+
+/* — Other fixed cells — */
+.tc-area,.tc-own,.tc-proc,.tc-note,.tc-rnote{
+  padding:0 7px;vertical-align:middle;
+}
+.tc-area{font-size:11px}
+.area-pill{
+  display:inline-block;padding:2px 7px;border-radius:8px;font-size:9px;
+  font-family:var(--f-mono);font-weight:700;letter-spacing:.3px;
+  background:rgba(63,198,212,.07);border:1px solid rgba(63,198,212,.2);color:var(--cyan);
+}
+.tc-own{font-size:10px;color:var(--t2);font-family:var(--f-mono)}
+.tc-sta{padding:0 5px;text-align:center;vertical-align:middle}
+.tc-proc{font-size:10px;color:var(--t2);line-height:1.4}
+.tc-note{font-size:10px;color:var(--t3);line-height:1.4;font-style:italic}
+
+/* REMARK COLUMN — distinct styling */
+.tc-rnote{font-size:10px;color:var(--amber-2);line-height:1.4;font-family:var(--f-th)}
+.rnote-empty{color:var(--t4);font-family:var(--f-mono);font-size:9px}
+
+/* ══════════════════
+   STATUS BADGES
+   ══════════════════ */
+.sbadge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:12px;font-size:9px;
+  font-family:var(--f-th);font-weight:700;border:1px solid;white-space:nowrap;
+}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sb-done  {background:rgba(45,201,138,.09);color:var(--green);border-color:rgba(45,201,138,.28)}
+.sb-inprog{background:rgba(63,198,212,.09);color:var(--cyan);border-color:rgba(63,198,212,.28)}
+.sb-pending{background:rgba(245,166,35,.09);color:var(--amber);border-color:rgba(245,166,35,.28)}
+.sb-hold  {background:rgba(224,82,82,.09);color:var(--red);border-color:rgba(224,82,82,.28)}
+
+/* ══════════════════
+   GANTT CELLS
+   ══════════════════ */
+.td-d{padding:2px;text-align:center;vertical-align:middle}
+.bar-plan{background:var(--bar-plan)}
+.bar-wip {background:var(--bar-wip)}
+.bar-done{background:var(--bar-done)}
+.bar-hold{background:var(--bar-hold)}
+.bar-plan:hover{background:var(--bar-plan-h)}
+.bar-wip:hover {background:var(--bar-wip-h)}
+.bar-done:hover{background:var(--bar-done-h)}
+.bar-hold:hover{background:var(--bar-hold-h)}
+/* Weekend shading */
+.cell-sun{background:#050C17 !important}
+.cell-sat{background:#060E1C !important}
+
+/* ══════════════════
+   MODALS
+   ══════════════════ */
+.mover{
+  position:fixed;inset:0;background:rgba(3,7,14,.88);z-index:800;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px);
+}
+.mover.open{display:flex}
+.mbox{
+  background:var(--panel2);border:1px solid var(--bdr2);border-radius:6px;
+  width:600px;max-width:96vw;max-height:92vh;overflow-y:auto;position:relative;
+}
+.mbox::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--amber));
+}
+.mhead{
+  padding:20px 24px 16px;border-bottom:1px solid var(--bdr2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mhead-title{
+  font-size:14px;font-weight:700;font-family:var(--f-th);
+  display:flex;align-items:center;gap:8px;
+}
+.mhead-tag{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:2px;
+  color:var(--t3);text-transform:uppercase;border:1px solid var(--bdr2);
+  padding:2px 7px;border-radius:3px;
+}
+.mx{background:transparent;border:none;color:var(--t3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.mx:hover{color:var(--t1)}
+.mbody{padding:20px 24px}
+.mfoot{padding:14px 24px;border-top:1px solid var(--bdr2);display:flex;gap:9px;justify-content:flex-end}
+
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{margin-bottom:16px}
+.fg label{
+  display:block;font-size:9px;font-family:var(--f-mono);font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:7px;
+}
+.fi{
+  width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;
+  padding:10px 12px;color:var(--t1);font-family:var(--f-th);font-size:13px;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.fi:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(63,198,212,.08)}
+.fi.mono{font-family:var(--f-mono)}
+textarea.fi{resize:vertical;min-height:66px;line-height:1.5}
+
+.cascade-notice{
+  background:rgba(63,198,212,.05);border:1px solid rgba(63,198,212,.2);border-radius:4px;
+  padding:11px 14px;font-size:11px;font-family:var(--f-mono);color:var(--cyan);
+  display:flex;align-items:flex-start;gap:9px;margin-top:4px;line-height:1.5;
+}
+.btn-x{
+  background:transparent;border:1px solid var(--bdr2);border-radius:4px;
+  color:var(--t2);padding:9px 18px;font-size:12px;font-family:var(--f-th);
+  cursor:pointer;transition:all .15s;font-weight:500;
+}
+.btn-x:hover{border-color:var(--bdr3);color:var(--t1)}
+.btn-ok{
+  background:var(--cyan);border:none;border-radius:4px;color:var(--bg);
+  padding:9px 20px;font-size:12px;font-family:var(--f-th);font-weight:700;
+  cursor:pointer;transition:background .15s;
+}
+.btn-ok:hover{background:#52D6E6}
+.btn-del{background:var(--red);border:none;border-radius:4px;color:#fff;padding:9px 20px;font-size:12px;font-family:var(--f-th);font-weight:700;cursor:pointer}
+
+.casc-list{max-height:190px;overflow-y:auto;border:1px solid var(--bdr);border-radius:4px;background:var(--bg2)}
+.casc-item{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--bdr);font-size:11px}
+.casc-item:last-child{border-bottom:none}
+.casc-shift{font-family:var(--f-mono);color:var(--amber);font-weight:700;font-size:11px}
+
+/* ══════════════════
+   TOAST
+   ══════════════════ */
+.tc{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  background:var(--panel3);border:1px solid var(--bdr2);border-radius:5px;
+  padding:12px 16px;font-size:12px;font-family:var(--f-th);
+  display:flex;align-items:center;gap:9px;min-width:260px;
+  animation:tIn .18s ease;box-shadow:0 6px 28px rgba(0,0,0,.55);pointer-events:auto;font-weight:500;
+}
+.toast.ok {border-left:3px solid var(--green)}
+.toast.err{border-left:3px solid var(--red)}
+.toast.inf{border-left:3px solid var(--cyan)}
+@keyframes tIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- ADMIN LOGIN -->
+<div id="login-overlay">
+  <div class="lcard">
+    <div class="lcard-bar"></div>
+    <button class="lcard-x" onclick="closeAdminLogin()">&#10005;</button>
+    <div class="llogo">
+      <svg viewBox="0 0 34 34" fill="none" width="34" height="34">
+        <rect x="1" y="1" width="32" height="32" rx="3" stroke="#3FC6D4" stroke-width="1.4"/>
+        <rect x="6" y="10" width="22" height="2.5" rx="1.2" fill="#3FC6D4" opacity=".5"/>
+        <rect x="6" y="16" width="14" height="2.5" rx="1.2" fill="#3FC6D4" opacity=".3"/>
+        <circle cx="26" cy="22" r="5" stroke="#F5A623" stroke-width="1.4"/>
+        <line x1="26" y1="9" x2="26" y2="17" stroke="#F5A623" stroke-width="1.4"/>
+        <line x1="21" y1="22" x2="33" y2="22" stroke="#F5A623" stroke-width="1.4"/>
+      </svg>
+      <div class="llogo-text"><strong>MACHINING SCHEDULE</strong>เครื่องกลึง 10 เมตร &nbsp;// ADMIN</div>
+    </div>
+    <h2>เข้าสู่ระบบ</h2>
+    <p>// ADMINISTRATOR ACCESS ONLY</p>
+    <div class="lf">
+      <label>ชื่อผู้ใช้งาน</label>
+      <input type="text" id="lu" placeholder="username" autocomplete="off">
+    </div>
+    <div class="lf">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="lp" placeholder="••••••••" autocomplete="off">
+    </div>
+    <div class="lerr" id="lerr">&#10007; ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง</div>
+    <button class="lbtn" onclick="doLogin()">SIGN IN</button>
+    <div class="lhint">username: admin &nbsp;/&nbsp; password: admin1234</div>
+  </div>
+</div>
+
+<div id="app" style="display:flex;flex-direction:column;min-height:100vh">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <svg viewBox="0 0 26 26" fill="none" width="26" height="26">
+        <rect x="1" y="1" width="24" height="24" rx="2.5" stroke="#3FC6D4" stroke-width="1.3"/>
+        <rect x="5" y="9" width="16" height="2" rx="1" fill="#3FC6D4" opacity=".5"/>
+        <rect x="5" y="13.5" width="10" height="2" rx="1" fill="#3FC6D4" opacity=".3"/>
+        <circle cx="19" cy="15.5" r="3.8" stroke="#F5A623" stroke-width="1.3"/>
+        <line x1="19" y1="6" x2="19" y2="11.7" stroke="#F5A623" stroke-width="1.3"/>
+        <line x1="15.2" y1="15.5" x2="24.5" y2="15.5" stroke="#F5A623" stroke-width="1.3"/>
+      </svg>
+    </div>
+    <div class="tb-wordmark">LATHE <span>10M</span> · SCHEDULE</div>
+    <div class="tb-rule"></div>
+    <div class="tb-sub">พ.ค. 2026 — ธ.ค. 2026</div>
+    <div class="tb-spacer"></div>
+    <div id="tb-admin-badge"></div>
+    <button class="tb-btn" onclick="scrollToToday()">
+      <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3"/><line x1="7" y1="7.5" x2="9.8" y2="9" stroke="currentColor" stroke-width="1.3"/></svg>
+      วันนี้
+    </button>
+    <button class="tb-btn accent" id="btn-add" onclick="openAddModal()" style="display:none">
+      <svg viewBox="0 0 14 14" fill="none"><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="1.7"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="1.7"/></svg>
+      เพิ่มงาน
+    </button>
+    <button class="tb-btn" id="btn-alog" onclick="openAdminLogin()">
+      <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M1 13c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Admin
+    </button>
+    <button class="tb-btn" id="btn-lout" onclick="doLogout()" style="display:none">
+      <svg viewBox="0 0 14 14" fill="none"><path d="M6 12H2a1 1 0 01-1-1V3a1 1 0 011-1h4" stroke="currentColor" stroke-width="1.3"/><polyline points="9,5 13,7 9,9" stroke="currentColor" stroke-width="1.3" fill="none"/><line x1="6" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="1.3"/></svg>
+      ออกจากระบบ
+    </button>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats" id="stats"></div>
+
+    <!-- Section heading -->
+    <div class="sec-hd">
+      <div class="sec-hd-line"></div>
+      <div class="sec-hd-txt">
+        <span class="sec-hd-dot"></span>
+        GANTT CHART — ตารางเวลางานเครื่องกลึง 10 เมตร
+        <span class="sec-hd-dot"></span>
+      </div>
+      <div class="sec-hd-line"></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-l">
+        <input class="t-inp t-search" type="text" id="q-search"
+          placeholder="🔍  ค้นหาชื่องาน / เจ้าของ / พื้นที่..." oninput="renderTable()">
+        <select class="t-inp t-sel" id="q-status" onchange="renderTable()">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="done">✓ เสร็จแล้ว</option>
+          <option value="inprog">▶ กำลังดำเนินการ</option>
+          <option value="pending">○ รอดำเนินการ</option>
+          <option value="hold">⚠ รอ / ระงับ</option>
+        </select>
+        <select class="t-inp t-sel" id="q-area" onchange="renderTable()">
+          <option value="">พื้นที่ทั้งหมด</option>
+        </select>
+      </div>
+      <div class="legend">
+        <div class="leg"><div class="leg-sq" style="background:var(--bar-plan)"></div>แผนงาน</div>
+        <div class="leg"><div class="leg-sq" style="background:var(--bar-wip)"></div>ดำเนินการ</div>
+        <div class="leg"><div class="leg-sq" style="background:var(--bar-done)"></div>เสร็จแล้ว</div>
+        <div class="leg"><div class="leg-sq" style="background:var(--bar-hold)"></div>รอ/ระงับ</div>
+        <div class="leg"><div class="leg-sq" style="background:#050C17;border:1px solid var(--bdr2)"></div>หยุด</div>
+      </div>
+    </div>
+
+    <!-- Gantt table -->
+    <div class="sched-wrap">
+      <div class="sched-scroll" id="sched-scroll">
+        <table class="gt" id="gt">
+          <thead id="gt-head"></thead>
+          <tbody id="gt-body"></tbody>
+        </table>
+      </div>
+      <div class="scroll-hint">◀ เลื่อนซ้าย–ขวาเพื่อดูตารางทั้งหมด ▶</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add/Edit -->
+<div class="mover" id="modal-job">
+  <div class="mbox">
+    <div class="mhead">
+      <span class="mhead-title" id="modal-job-title">
+        เพิ่มงานใหม่
+        <span class="mhead-tag">JOB EDITOR</span>
+      </span>
+      <button class="mx" onclick="closeModal('modal-job')">&#10005;</button>
+    </div>
+    <div class="mbody">
+      <input type="hidden" id="f-id">
+      <div class="fg">
+        <label>ชื่องาน / Job Name <span style="color:var(--red)">*</span></label>
+        <input class="fi" type="text" id="f-name" placeholder="เช่น ซ่อมเพลา Size press leadin...">
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>พื้นที่ / Area</label>
+          <input class="fi" type="text" id="f-area" placeholder="เช่น Size Press / ETP2">
+        </div>
+        <div class="fg">
+          <label>เจ้าของงาน / Owner</label>
+          <input class="fi" type="text" id="f-owner" placeholder="เช่น nattanon / 6229">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>วันที่เริ่ม <span style="color:var(--red)">*</span></label>
+          <input class="fi mono" type="date" id="f-start">
+        </div>
+        <div class="fg">
+          <label>วันที่สิ้นสุด <span style="color:var(--red)">*</span></label>
+          <input class="fi mono" type="date" id="f-end">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>สถานะ</label>
+          <select class="fi" id="f-status">
+            <option value="pending">รอดำเนินการ</option>
+            <option value="inprog">กำลังดำเนินการ</option>
+            <option value="done">เสร็จแล้ว</option>
+            <option value="hold">รอวัสดุ / ระงับ</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>ลำดับความสำคัญ</label>
+          <select class="fi" id="f-prio">
+            <option value="normal">ปกติ</option>
+            <option value="high">เร่งด่วน ⚠</option>
+            <option value="low">ต่ำ</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>กระบวนการ / Process</label>
+        <input class="fi" type="text" id="f-proc" placeholder="เช่น เบิ้มเดิมเนื้อ / กลึงร่วมศูนย์">
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label>หมายเหตุ / Note</label>
+          <textarea class="fi" id="f-note" placeholder="ข้อมูลเพิ่มเติม..."></textarea>
+        </div>
+        <div class="fg">
+          <label>บันทึกช่าง / Remark <span style="color:var(--amber)">★</span></label>
+          <textarea class="fi" id="f-rnote" placeholder="บันทึกจากช่าง / ข้อสังเกตระหว่างงาน..." style="border-color:rgba(245,166,35,.3)"></textarea>
+        </div>
+      </div>
+      <div class="cascade-notice" id="casc-notice" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><line x1="7" y1="5" x2="7" y2="9.5" stroke="currentColor" stroke-width="1.3"/><circle cx="7" cy="3.8" r=".7" fill="currentColor"/></svg>
+        <span>เมื่อเลื่อนวันเริ่มงาน ระบบจะขยับงานทั้งหมดที่อยู่ถัดไปโดยอัตโนมัติ</span>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-x" onclick="closeModal('modal-job')">ยกเลิก</button>
+      <button class="btn-ok" onclick="saveJob()">&#10003;&nbsp; บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Cascade confirm -->
+<div class="mover" id="modal-casc">
+  <div class="mbox" style="width:500px">
+    <div class="mhead">
+      <span class="mhead-title">⚠ ยืนยันการเลื่อนเวลา</span>
+      <button class="mx" onclick="closeModal('modal-casc')">&#10005;</button>
+    </div>
+    <div class="mbody">
+      <p style="font-size:13px;margin-bottom:11px">งาน <strong id="casc-jname" style="color:var(--cyan)"></strong> จะถูกเลื่อน <strong id="casc-days" style="color:var(--amber)"></strong> วัน</p>
+      <p style="font-size:12px;color:var(--t2);margin-bottom:11px">งานที่จะถูกขยับตามอัตโนมัติ:</p>
+      <div class="casc-list" id="casc-list"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-x" onclick="closeModal('modal-casc')">ยกเลิก</button>
+      <button class="btn-ok" style="background:var(--amber);color:var(--bg)" onclick="applyCascade()">ยืนยัน &amp; บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Delete confirm -->
+<div class="mover" id="modal-del">
+  <div class="mbox" style="width:420px">
+    <div class="mhead">
+      <span class="mhead-title">ลบงาน</span>
+      <button class="mx" onclick="closeModal('modal-del')">&#10005;</button>
+    </div>
+    <div class="mbody">
+      <p style="font-size:13px">ต้องการลบงาน <strong id="del-jname" style="color:var(--red)"></strong> ใช่หรือไม่?<br>
+      <span style="font-size:11px;color:var(--t3);font-family:var(--f-mono)">// การดำเนินการนี้ไม่สามารถยกเลิกได้</span></p>
+    </div>
+    <div class="mfoot">
+      <button class="btn-x" onclick="closeModal('modal-del')">ยกเลิก</button>
+      <button class="btn-del" onclick="confirmDelete()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="tc" id="toast-c"></div>
+
+<script>
+/* ═════════════════════════════════════
+   AUTH
+   ═════════════════════════════════════ */
+const ADMINS={admin:'admin1234'};
+let role='viewer';
+
+function openAdminLogin(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('lu').value='';
+  document.getElementById('lp').value='';
+  document.getElementById('lerr').style.display='none';
+}
+function closeAdminLogin(){document.getElementById('login-overlay').style.display='none';}
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  if(ADMINS[u]===p){
+    role='admin';closeAdminLogin();applyRole();
+    showToast('เข้าสู่ระบบสำเร็จ — Admin mode','ok');
+  } else {
+    document.getElementById('lerr').style.display='block';
+  }
+}
+function doLogout(){role='viewer';applyRole();showToast('ออกจากระบบแล้ว','inf');}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('lu').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function applyRole(){
+  const a=role==='admin';
+  document.getElementById('btn-add').style.display=a?'flex':'none';
+  document.getElementById('btn-alog').style.display=a?'none':'flex';
+  document.getElementById('btn-lout').style.display=a?'flex':'none';
+  document.getElementById('tb-admin-badge').innerHTML=a?'<div class="tb-admin-badge">▲ ADMIN</div>':'';
+  renderTable();
+}
+
+/* ═════════════════════════════════════
+   DATE HELPERS
+   ═════════════════════════════════════ */
+const S_START=new Date(2026,4,10);
+const S_END  =new Date(2026,11,31);
+const TODAY  =fmtD(new Date());
+const MTH_TH =['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const DOW_TH =['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DOW_TH_S=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+function fmtD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function pad(n){return String(n).padStart(2,'0');}
+function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function diffD(a,b){return Math.round((b-a)/86400000);}
+
+function isHoliday(d){
+  const dow=d.getDay();
+  if(dow===0) return 'sun';
+  if(dow===6){
+    const ds=fmtD(d);
+    if(ds==='2026-05-30'||ds==='2026-06-06') return 'sat';
+    const yr=d.getFullYear(),mo=d.getMonth();
+    let cnt=0;
+    for(let day=1;day<=d.getDate();day++){if(new Date(yr,mo,day).getDay()===6)cnt++;}
+    return (cnt%2===1)?'sat':null;
+  }
+  return null;
+}
+
+function genDates(){
+  const out=[];let d=new Date(S_START);
+  while(d<=S_END){out.push(new Date(d));d=addD(d,1);}
+  return out;
+}
+const DATES=genDates();
+
+/* ═════════════════════════════════════
+   DATA
+   ═════════════════════════════════════ */
+let jobs=[
+  {id:1, name:'ซ่อมเพลา Size press leadin ตำแหน่งรองเชื่อก', area:'Size Press', owner:'nattanon / 6229', status:'done',    prio:'high',   start:'2026-05-10',end:'2026-05-16',proc:'เบิ้มเดิมเนื้อ / กลึงร่วมศูนย์', note:'',rnote:''},
+  {id:2, name:'แก้ไขเพลา roller NO 24 ETP2 No.1',           area:'ETP2',      owner:'',              status:'done',    prio:'normal', start:'2026-05-12',end:'2026-05-20',proc:'เบิ้มเดิมเนื้อ / กลึงร่วมศูนย์', note:'',rnote:''},
+  {id:3, name:'แก้ไขเพลา roller NO 24 ETP2 No.2',           area:'ETP2',      owner:'',              status:'done',    prio:'normal', start:'2026-05-19',end:'2026-05-25',proc:'เบิ้มเดิมเนื้อ / กลึงร่วมศูนย์', note:'',rnote:''},
+  {id:4, name:'กลึงเพลา screw conveyor 322C001',             area:'Conveyor',  owner:'saovapol / 2981',status:'done',   prio:'high',   start:'2026-05-15',end:'2026-05-22',proc:'กลึงร่วมศูนย์/หัว-ท้าย ไสรอง/ลิ้ม', note:'',rnote:'final 20/05 — ตรวจสอบหน้าตัด OK'},
+  {id:5, name:'Screw chip c001',                             area:'Chip',      owner:'',              status:'pending', prio:'normal', start:'2026-05-25',end:'2026-06-05',proc:'', note:'',rnote:''},
+  {id:6, name:'screw 321C004',                               area:'Screw',     owner:'',              status:'pending', prio:'normal', start:'2026-06-05',end:'2026-06-18',proc:'', note:'',rnote:''},
+  {id:7, name:'Screw Reclaimer',                             area:'Reclaimer', owner:'saovapol / 2981',status:'inprog', prio:'normal', start:'2026-06-09',end:'2026-06-25',proc:'', note:'',rnote:'เริ่มงานแล้ว — รอวัสดุเพิ่มเติม'},
+  {id:8, name:'Screw Press',                                 area:'Press',     owner:'',              status:'pending', prio:'normal', start:'2026-06-22',end:'2026-07-05',proc:'', note:'',rnote:''},
+  {id:9, name:'Stocker Screw',                               area:'Stocker',   owner:'',              status:'pending', prio:'normal', start:'2026-07-01',end:'2026-07-20',proc:'', note:'',rnote:''},
+  {id:10,name:'REPAIR DISTRIBUTION SCREW',                   area:'Distribution',owner:'',            status:'pending', prio:'high',   start:'2026-07-15',end:'2026-08-05',proc:'', note:'',rnote:''},
+  {id:11,name:'Overhaul Main Shaft Shredder',                area:'Shredder',  owner:'',              status:'pending', prio:'high',   start:'2026-08-03',end:'2026-08-28',proc:'', note:'',rnote:''},
+];
+let nextId=12,pendCasc=null,pendDel=null;
+
+/* ═════════════════════════════════════
+   STATS
+   ═════════════════════════════════════ */
+function updateStats(){
+  const tot=jobs.length,
+        dn =jobs.filter(j=>j.status==='done').length,
+        ip =jobs.filter(j=>j.status==='inprog').length,
+        pe =jobs.filter(j=>j.status==='pending'||j.status==='hold').length;
+  document.getElementById('stats').innerHTML=`
+    <div class="scard c0"><div class="scard-lbl">งานทั้งหมด</div><div class="scard-val">${tot}</div><div class="scard-sub">TOTAL JOBS</div></div>
+    <div class="scard c1"><div class="scard-lbl">เสร็จแล้ว</div><div class="scard-val">${dn}</div><div class="scard-sub">COMPLETED</div></div>
+    <div class="scard c2"><div class="scard-lbl">กำลังดำเนินการ</div><div class="scard-val">${ip}</div><div class="scard-sub">IN PROGRESS</div></div>
+    <div class="scard c3"><div class="scard-lbl">รอดำเนินการ</div><div class="scard-val">${pe}</div><div class="scard-sub">PENDING / HOLD</div></div>
+  `;
+}
+
+/* ═════════════════════════════════════
+   AREA FILTER
+   ═════════════════════════════════════ */
+function updateAreaFilter(){
+  const sel=document.getElementById('q-area');
+  const areas=[...new Set(jobs.map(j=>j.area).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">พื้นที่ทั้งหมด</option>'+areas.map(a=>`<option value="${a}">${a}</option>`).join('');
+}
+
+/* ═════════════════════════════════════
+   RENDER TABLE
+   ═════════════════════════════════════ */
+function renderTable(){
+  const q =document.getElementById('q-search').value.toLowerCase();
+  const fs=document.getElementById('q-status').value;
+  const fa=document.getElementById('q-area').value;
+  const isAdmin=role==='admin';
+
+  const filtered=jobs.filter(j=>{
+    const txt=(j.name+j.owner+j.area+(j.note||'')+(j.rnote||'')).toLowerCase();
+    return txt.includes(q)&&(!fs||j.status===fs)&&(!fa||j.area===fa);
+  });
+
+  /* Build month groups */
+  const months=[];let cm=-1,cc=0;
+  DATES.forEach(d=>{
+    const mo=d.getMonth();
+    if(mo!==cm){if(cc>0)months[months.length-1].span=cc;months.push({label:MTH_TH[mo]+' '+d.getFullYear(),span:0});cm=mo;cc=1;}
+    else cc++;
+  });
+  if(months.length) months[months.length-1].span=cc;
+
+  /* Header row 1 */
+  const fixedHd=`
+    <th class="cf-no" rowspan="2">NO.</th>
+    <th class="cf-name" rowspan="2">ชื่องาน / รายละเอียด</th>
+    <th class="cf-area" rowspan="2">พื้นที่</th>
+    <th class="cf-own" rowspan="2">เจ้าของงาน</th>
+    <th class="cf-sta" rowspan="2">สถานะ</th>
+    <th class="cf-proc" rowspan="2">กระบวนการ</th>
+    <th class="cf-note" rowspan="2">หมายเหตุ</th>
+    <th class="cf-rnote" rowspan="2" style="color:var(--amber);border-left:2px solid var(--amber-3)">บันทึกช่าง</th>`;
+  const mthHd=months.map(m=>`<th colspan="${m.span}" class="mth-cell">${m.label}</th>`).join('');
+
+  /* Header row 2: day numbers */
+  const dayHd=DATES.map(d=>{
+    const ds=fmtD(d),hol=isHoliday(d),isT=(ds===TODAY);
+    let bgStyle=hol==='sun'?'background:#04090F':hol==='sat'?'background:#060C18':'background:var(--bg2)';
+    if(isT) bgStyle='background:rgba(245,166,35,.08)';
+    let numCls='day-num';
+    let dowCls='day-dow';
+    if(isT){numCls+=' d-today';dowCls+=' d-today';}
+    if(hol==='sun'){numCls+=' d-hol-sun';dowCls+=' d-hol-sun';}
+    if(hol==='sat'){numCls+=' d-hol-sat';dowCls+=' d-hol-sat';}
+    return `<th class="dc" style="${bgStyle}">
+      <div class="day-wrap">
+        <span class="${numCls}">${d.getDate()}</span>
+        <span class="${dowCls}">${DOW_TH_S[d.getDay()]}</span>
+      </div>
+    </th>`;
+  }).join('');
+
+  document.getElementById('gt-head').innerHTML=`
+    <tr class="hr1">${fixedHd}${mthHd}</tr>
+    <tr class="hr2">${dayHd}</tr>`;
+
+  /* Body */
+  const tbody=document.getElementById('gt-body');
+  tbody.innerHTML='';
+
+  const SM={
+    done:   {cls:'sb-done',  lbl:'✓ เสร็จแล้ว'},
+    inprog: {cls:'sb-inprog',lbl:'▶ ดำเนินการ'},
+    pending:{cls:'sb-pending',lbl:'○ รอดำเนินการ'},
+    hold:   {cls:'sb-hold',  lbl:'⚠ รอ/ระงับ'},
+  };
+  const prioColor={high:'var(--red)',normal:'var(--bdr3)',low:'var(--t4)'};
+
+  filtered.forEach(job=>{
+    const tr=document.createElement('tr');
+    const sm=SM[job.status]||SM.pending;
+    const jS=parseD(job.start),jE=parseD(job.end);
+    const workDays=DATES.filter(d=>!isHoliday(d)&&d>=jS&&d<=jE).length;
+
+    const adminBtns=isAdmin?`<div class="abtn-row">
+      <button class="abtn ae" onclick="openEditModal(${job.id})">✎ แก้ไข</button>
+      <button class="abtn ad" onclick="openDeleteModal(${job.id})">✕ ลบ</button>
+    </div>`:'';
+
+    const rnoteTd=job.rnote
+      ?`<span>${job.rnote}</span>`
+      :`<span class="rnote-empty">—</span>`;
+
+    tr.innerHTML=`
+      <td class="tc-no">
+        <span class="prio-bar" style="height:22px;background:${prioColor[job.prio]||prioColor.normal}"></span>
+        <span>${job.id}</span>
+      </td>
+      <td class="tc-name">
+        <div class="jname">${job.name}</div>
+        <div class="jmeta">
+          <span>${job.start}</span>
+          <span class="jmeta-sep">→</span>
+          <span>${job.end}</span>
+          <span class="jmeta-sep">·</span>
+          <span>${workDays} วันทำงาน</span>
+        </div>
+        ${adminBtns}
+      </td>
+      <td class="tc-area"><span class="area-pill">${job.area||'—'}</span></td>
+      <td class="tc-own">${job.owner||'—'}</td>
+      <td class="tc-sta"><span class="sbadge ${sm.cls}">${sm.lbl}</span></td>
+      <td class="tc-proc">${job.proc||'—'}</td>
+      <td class="tc-note">${job.note||'—'}</td>
+      <td class="tc-rnote" style="border-left:2px solid var(--amber-3)">${rnoteTd}</td>
+    `;
+
+    /* Gantt cells */
+    DATES.forEach(d=>{
+      const td=document.createElement('td');
+      const ds=fmtD(d),hol=isHoliday(d),isT=(ds===TODAY);
+      const inRange=(d>=jS&&d<=jE);
+      td.className='td-d dc';
+      if(hol==='sun') td.classList.add('cell-sun');
+      else if(hol==='sat') td.classList.add('cell-sat');
+      else if(inRange){
+        const bc=job.status==='done'?'bar-done':job.status==='inprog'?'bar-wip':job.status==='hold'?'bar-hold':'bar-plan';
+        td.classList.add(bc);
+        if(isT) td.classList.add('d-today-mark');
+      } else {
+        if(isT) td.style.background='rgba(245,166,35,.04)';
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+/* ═════════════════════════════════════
+   SCROLL TO TODAY
+   ═════════════════════════════════════ */
+function scrollToToday(){
+  const sc=document.getElementById('sched-scroll');
+  const idx=DATES.findIndex(d=>fmtD(d)===TODAY);
+  if(idx<0) return;
+  const fixW=38+180+80+110+96+140+120+130;
+  const colW=28;
+  const target=fixW+idx*colW-sc.clientWidth/2;
+  sc.scrollLeft=Math.max(0,target);
+}
+
+/* ═════════════════════════════════════
+   MODAL: ADD / EDIT
+   ═════════════════════════════════════ */
+function openAddModal(){
+  document.getElementById('modal-job-title').innerHTML='เพิ่มงานใหม่ <span class="mhead-tag">JOB EDITOR</span>';
+  document.getElementById('f-id').value='';
+  ['f-name','f-area','f-owner','f-proc','f-note','f-rnote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-start').value=fmtD(new Date());
+  document.getElementById('f-end').value=fmtD(addD(new Date(),7));
+  document.getElementById('f-status').value='pending';
+  document.getElementById('f-prio').value='normal';
+  document.getElementById('casc-notice').style.display='none';
+  openModal('modal-job');
+}
+function openEditModal(id){
+  const j=jobs.find(x=>x.id===id);if(!j) return;
+  document.getElementById('modal-job-title').innerHTML='แก้ไขงาน <span class="mhead-tag">JOB EDITOR</span>';
+  document.getElementById('f-id').value=id;
+  document.getElementById('f-name').value=j.name;
+  document.getElementById('f-area').value=j.area;
+  document.getElementById('f-owner').value=j.owner;
+  document.getElementById('f-start').value=j.start;
+  document.getElementById('f-end').value=j.end;
+  document.getElementById('f-status').value=j.status;
+  document.getElementById('f-prio').value=j.prio;
+  document.getElementById('f-proc').value=j.proc;
+  document.getElementById('f-note').value=j.note;
+  document.getElementById('f-rnote').value=j.rnote||'';
+  document.getElementById('casc-notice').style.display='flex';
+  openModal('modal-job');
+}
+function saveJob(){
+  const name =document.getElementById('f-name').value.trim();
+  const area =document.getElementById('f-area').value.trim();
+  const owner=document.getElementById('f-owner').value.trim();
+  const start=document.getElementById('f-start').value;
+  const end  =document.getElementById('f-end').value;
+  const stat =document.getElementById('f-status').value;
+  const prio =document.getElementById('f-prio').value;
+  const proc =document.getElementById('f-proc').value.trim();
+  const note =document.getElementById('f-note').value.trim();
+  const rnote=document.getElementById('f-rnote').value.trim();
+  const eid  =document.getElementById('f-id').value;
+  if(!name||!start||!end){showToast('กรุณากรอกข้อมูลที่จำเป็น','err');return;}
+  if(start>end){showToast('วันเริ่มต้องไม่เกินวันสิ้นสุด','err');return;}
+
+  if(eid){
+    const idx=jobs.findIndex(j=>j.id===parseInt(eid));
+    const oldJ=jobs[idx];const diff=diffD(parseD(oldJ.start),parseD(start));
+    if(diff!==0){
+      const after=jobs.filter(j=>j.id!==oldJ.id&&parseD(j.start)>=parseD(oldJ.start));
+      if(after.length>0){
+        pendCasc={eid:parseInt(eid),nd:{name,area,owner,start,end,status:stat,prio,proc,note,rnote},diff,after};
+        document.getElementById('casc-jname').textContent=name;
+        document.getElementById('casc-days').textContent=(diff>0?'+':'')+diff;
+        document.getElementById('casc-list').innerHTML=after.map(j=>`<div class="casc-item"><span>${j.name}</span><span class="casc-shift">${diff>0?'+':''} ${diff} วัน</span></div>`).join('');
+        closeModal('modal-job');openModal('modal-casc');return;
+      }
+    }
+    Object.assign(jobs[idx],{name,area,owner,start,end,status:stat,prio,proc,note,rnote});
+  } else {
+    jobs.push({id:nextId++,name,area,owner,start,end,status:stat,prio,proc,note,rnote});
+  }
+  closeModal('modal-job');updateAreaFilter();updateStats();renderTable();
+  showToast(eid?'อัปเดตเรียบร้อย':'เพิ่มงานใหม่แล้ว','ok');
+}
+function applyCascade(){
+  if(!pendCasc) return;
+  const{eid,nd,diff,after}=pendCasc;
+  Object.assign(jobs[jobs.findIndex(j=>j.id===eid)],nd);
+  after.forEach(aj=>{
+    const i=jobs.findIndex(j=>j.id===aj.id);
+    jobs[i].start=fmtD(addD(parseD(jobs[i].start),diff));
+    jobs[i].end  =fmtD(addD(parseD(jobs[i].end),  diff));
+  });
+  pendCasc=null;closeModal('modal-casc');updateAreaFilter();updateStats();renderTable();
+  showToast('บันทึกและขยับงานทั้งหมดเรียบร้อย','ok');
+}
+
+/* ═════════════════════════════════════
+   DELETE
+   ═════════════════════════════════════ */
+function openDeleteModal(id){
+  const j=jobs.find(x=>x.id===id);if(!j) return;
+  pendDel=id;document.getElementById('del-jname').textContent=j.name;openModal('modal-del');
+}
+function confirmDelete(){
+  jobs=jobs.filter(j=>j.id!==pendDel);pendDel=null;
+  closeModal('modal-del');updateAreaFilter();updateStats();renderTable();
+  showToast('ลบงานเรียบร้อย','inf');
+}
+
+/* ═════════════════════════════════════
+   MODAL HELPERS
+   ═════════════════════════════════════ */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mover').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+/* ═════════════════════════════════════
+   TOAST
+   ═════════════════════════════════════ */
+function showToast(msg,type='inf'){
+  const c=document.getElementById('toast-c');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  const col={ok:'var(--green)',err:'var(--red)',inf:'var(--cyan)'};
+  const ico={ok:'✓',err:'✕',inf:'◆'};
+  t.innerHTML=`<span style="color:${col[type]};font-size:14px;font-family:var(--f-mono)">${ico[type]}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),320);},3200);
+}
+
+/* ═════════════════════════════════════
+   INIT
+   ═════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded',()=>{
+  updateAreaFilter();updateStats();renderTable();
+  setTimeout(scrollToToday,350);
+});
+</script>
+</body>
+</html>
